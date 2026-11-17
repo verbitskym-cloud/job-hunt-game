@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:url" content="https://verbitskym-cloud.github.io/job-hunt-game/"><meta name="description" content="A tiny pixel arcade about job hunting."><title>Job Hunt Arcade</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:url" content="https://verbitskym-cloud.github.io/job-hunt-game/"><meta name="description" content="A tiny pixel arcade about job hunting."><title>Job Hunt Arcade</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap">
 <style>
 /* Layout concept: a fixed 960x540 "job portal" stage scaled to the window; game field is a canvas, screens are overlays. */
@@ -50,7 +50,12 @@ body.touch.playing #padSwap{display:block}
 body.padleft #pad{right:auto;left:max(16px,env(safe-area-inset-left,0px))}
 body.padleft #padSwap{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #rot{position:fixed;inset:0;z-index:50;background:var(--night);color:#fff;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;font:12px/2 var(--px)}
-@media (orientation:portrait) and (max-width:900px){#rot{display:flex}}
+#plinks{position:fixed;display:none;gap:10px;z-index:20}
+body.portrait #plinks{display:flex}
+#plinks a{flex:1;min-height:50px;display:flex;align-items:center;justify-content:center;text-align:center;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--night);font:8px/1.6 var(--px);text-decoration:none;color:var(--ink);background:#F2B134;padding:4px}
+#plinks a.li{background:#0A66C2;color:#fff}
+body.portrait #padSwap{display:none!important}
+#rot{display:none!important}
 @media (prefers-reduced-motion:reduce){.btn:active{transform:none}}
 </style>
 </head><body>
@@ -222,6 +227,7 @@ body.padleft #padSwap{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
   <button type="button" data-d="down" aria-label="Down" style="grid-column:2;grid-row:3"><svg width="26" height="26" viewBox="0 0 22 22" aria-hidden="true"><path d="M4 7l7 8 7-8" stroke="#fff" stroke-width="4" fill="none" shape-rendering="crispEdges"/></svg></button>
 </div>
 <button type="button" id="padSwap">Controls: swap side</button>
+<div id="plinks"><a class="li" id="pLi" target="_blank" rel="noopener">MY LINKEDIN</a><a id="pPp" target="_blank" rel="noopener">SAY THANKS (PAYPAL)</a></div>
 <div id="rot">ROTATE YOUR PHONE<br>TO LANDSCAPE<br>TO PLAY</div>
 
 <script>
@@ -358,7 +364,7 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 /* ---------- links ---------- */
 (function initLinks() {
   ['aThanks1', 'aThanks2', 'aThanks3', 'aThanks4'].forEach(function (id) { $(id).href = CONFIG.author.paypal; });
-  $('aAuthor').href = CONFIG.author.linkedin;
+  $('aAuthor').href = CONFIG.author.linkedin; $('pLi').href = CONFIG.author.linkedin; $('pPp').href = CONFIG.author.paypal;
   updateShareLinks();
   ['aShare1', 'aShare2'].forEach(function (id) {
     $(id).addEventListener('click', function () {
@@ -1138,8 +1144,22 @@ function resizeCanvas() {
 }
 function fit() {
   const vw = window.innerWidth, vh = window.innerHeight;
-  scale = Math.min(vw / 960, vh / 540);
-  stage.style.transform = 'translate(' + Math.round((vw - 960 * scale) / 2) + 'px,' + Math.round((vh - 540 * scale) / 2) + 'px) scale(' + scale + ')';
+  const portrait = vh > vw * 1.15;
+  document.body.classList.toggle('portrait', portrait);
+  const padEl = $('pad'), links = $('plinks');
+  if (portrait) {
+    scale = vw / 960;
+    const sh = 540 * scale, PADH = 150, LH = 52, G = 14;
+    const top = Math.max(8, Math.round((vh - (sh + G + PADH + G + LH)) * 0.4));
+    stage.style.transform = 'translate(0px,' + top + 'px) scale(' + scale + ')';
+    const pt = Math.round(top + sh + G);
+    padEl.style.right = 'auto'; padEl.style.bottom = 'auto'; padEl.style.left = Math.round((vw - PADH) / 2) + 'px'; padEl.style.top = pt + 'px';
+    links.style.left = '12px'; links.style.right = '12px'; links.style.top = (pt + PADH + G) + 'px';
+  } else {
+    scale = Math.min(vw / 960, vh / 540);
+    stage.style.transform = 'translate(' + Math.round((vw - 960 * scale) / 2) + 'px,' + Math.round((vh - 540 * scale) / 2) + 'px) scale(' + scale + ')';
+    padEl.style.left = padEl.style.right = padEl.style.top = padEl.style.bottom = '';
+  }
   resizeCanvas();
   if (RENDER_STATES.indexOf(state) >= 0) render();
 }
