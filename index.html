@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:type" content="website"><meta property="og:site_name" content="Job Hunt: The Game"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><meta property="og:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta name="description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><title>Job Hunt: The Game</title><title>Job Hunt Arcade</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:type" content="website"><meta property="og:site_name" content="Job Hunt: The Game"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><meta property="og:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta name="description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><title>Job Hunt: The Game</title><script data-goatcounter="https://verbitskym.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script><title>Job Hunt Arcade</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap">
 <style>
 /* Layout concept: a fixed 960x540 "job portal" stage scaled to the window; game field is a canvas, screens are overlays. */
@@ -403,11 +403,12 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 /* ---------- links ---------- */
 (function initLinks() {
   ['aThanks1', 'aThanks2', 'aThanks3', 'aThanks4'].forEach(function (id) { $(id).href = CONFIG.author.paypal; });
-  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v11'));
+  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 anonymous stats \u00b7 v12'));
   $('aAuthor').href = CONFIG.author.linkedin; $('pLi').href = CONFIG.author.linkedin; $('pPp').href = CONFIG.author.paypal;
   updateShareLinks();
   ['aShare1', 'aShare2'].forEach(function (id) {
     $(id).addEventListener('click', function (e) {
+      track('share-linkedin');
       const phone = isPhone(), txt = shareText();
       let ok = false;
       try {
@@ -491,7 +492,12 @@ function beginLevel(n) {
   clearTimeout(splashTimer); curLevel = n; lastPct = -1;
   ({ 1: beginPlay, 2: startL2, 3: startTTT, 4: startL4 })[n]();
 }
-function nextLevel() { if (curLevel >= 4) showOffer(); else goLevel(curLevel + 1); }
+function track(name) {
+  // anonymous counters (GoatCounter); silently does nothing if the script is missing or blocked
+  const send = function () { try { if (window.goatcounter && window.goatcounter.count) { window.goatcounter.count({ path: name, title: name, event: true }); return true; } } catch (e) { } return false; };
+  if (!send()) setTimeout(send, 2000);
+}
+function nextLevel() { track('level-' + curLevel + '-done'); if (curLevel >= 4) showOffer(); else goLevel(curLevel + 1); }
 function goStart() {
   state = 'menu'; setPlaying(false); show('sStart'); setHdr('Application: step 1 of 5', 20);
 }
@@ -725,6 +731,7 @@ function offerVals() {
   return { name: name, role: role, date: CONFIG.offer.date };
 }
 function showOffer() {
+  track('offer-reached');
   state = 'offer'; setPlaying(false);
   const v = offerVals(), o = CONFIG.offer;
   $('offCo').textContent = o.company;
@@ -838,8 +845,8 @@ const endDrag = function (e) { if (drag && drag.id === e.pointerId) drag = null;
 cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
 
 /* ---------- buttons ---------- */
-$('bStart').addEventListener('click', function () { viaReferral = false; goLevel(1); });
-$('bSkip').addEventListener('click', goSkip);
+$('bStart').addEventListener('click', function () { track('start'); viaReferral = false; goLevel(1); });
+$('bSkip').addEventListener('click', function () { track('start-skip'); goSkip(); });
 $('bSkipBack').addEventListener('click', function () { goLevel(3); });
 $('sSplash').addEventListener('pointerdown', function () { if (state === 'splash') beginLevel(curLevel); });
 $('bRetry').addEventListener('click', function () { if (retryFn) retryFn(); });
@@ -1290,6 +1297,7 @@ const fontsReady = (document.fonts && document.fonts.load)
     else if (l >= 1 && l <= 4 && t >= 0 && t < 3600) { el.textContent = 'CHALLENGE: a friend was rejected at ' + fmt(t) + ' in Level ' + l + ': ' + CONFIG.levels[l].name + '. Can you do better?'; el.className = 'on'; }
   } catch (e) { }
 })();
+setTimeout(function () { track(/[?&](l|w)=/.test(location.search) ? 'open-from-challenge' : 'open-direct'); }, 1200);
 const startAt = /level-(\d)/.exec(location.hash);   // add #level-2 (3, 4) to the address to jump to a level while testing
 const boot = function () { requestAnimationFrame(loop); if (startAt && CONFIG.levels[startAt[1]]) { viaReferral = false; goLevel(parseInt(startAt[1], 10)); } };
 fontsReady.then(boot, boot);
