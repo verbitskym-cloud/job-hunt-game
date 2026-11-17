@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:url" content="https://verbitskym-cloud.github.io/job-hunt-game/"><meta name="description" content="A tiny pixel arcade about job hunting."><title>Job Hunt Arcade</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:type" content="website"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><meta property="og:url" content="https://verbitskym-cloud.github.io/job-hunt-game/"><meta property="og:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta name="description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><title>Job Hunt: The Game</title><title>Job Hunt Arcade</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap">
 <style>
 /* Layout concept: a fixed 960x540 "job portal" stage scaled to the window; game field is a canvas, screens are overlays. */
@@ -170,7 +170,7 @@ body.portrait #padSwap{display:none!important}
         <button type="button" id="bRetry" class="btn" style="font-size:9px">TRY AGAIN</button>
         <button type="button" id="bCopy1" class="btn" style="font-size:9px">COPY MY RESULT</button>
         <a id="aShare1" class="btn primary" style="font-size:9px" target="_blank" rel="noopener">SHARE ON LINKEDIN</a>
-        <span style="font-size:11px;line-height:1.4;color:var(--muted)">The result text is also copied, in case LinkedIn opens an empty post.</span>
+        <span style="font-size:11px;line-height:1.4;color:var(--muted)">The result text is copied: paste it into the post.</span>
         <a id="aThanks2" class="lnk" style="font-size:12px;text-align:center" target="_blank" rel="noopener">Say thanks via PayPal</a>
       </div>
     </section>
@@ -197,7 +197,7 @@ body.portrait #padSwap{display:none!important}
         <button type="button" id="bDl" class="btn" style="font-size:9px">DOWNLOAD OFFER</button>
         <button type="button" id="bCopy2" class="btn" style="font-size:9px">COPY MY RESULT</button>
         <a id="aShare2" class="btn primary" style="font-size:9px" target="_blank" rel="noopener">SHARE ON LINKEDIN</a>
-        <span style="font-size:11px;line-height:1.4;color:var(--mist)">The result text is also copied, in case LinkedIn opens an empty post.</span>
+        <span style="font-size:11px;line-height:1.4;color:var(--mist)">The result text is copied: paste it into the post.</span>
         <a id="aThanks3" class="btn gold" style="font-size:9px" target="_blank" rel="noopener">SAY THANKS (PAYPAL)</a>
         <button type="button" id="bAgain" class="btn ghost" style="font-size:9px">PLAY AGAIN</button>
       </div>
@@ -375,7 +375,8 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 function shareText() { return (lastResult || 'Can you beat the AI ATS?') + '\n' + gameUrl(); }
 function updateShareLinks() {
   // Opens the LinkedIn post composer with the result and the game link already in the text.
-  const href = 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(shareText());
+  const phone = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+  const href = phone ? 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(gameUrl()) : 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(shareText());
   $('aShare1').href = href; $('aShare2').href = href;
 }
 
@@ -1073,12 +1074,21 @@ function setDir(d) {
 function snakeFail(msg) {
   sn.got = 0; sn.idx = 0; sn.flash = msg; sn.flashT = 2.6; resetSnake(); spawnDoc();
 }
+function snakeDie(reason) {
+  const L = CONFIG.levels[4];
+  finishOver({
+    title: 'ACCESS DENIED', reason: reason, stats: 'Documents collected: ' + sn.got + '/' + CONFIG.l4.total,
+    share: tpl(CONFIG.share.dead, { time: fmt(t), n: 4, name: L.name, reason: reason }),
+    retry: startL4
+  });
+}
 function stepSnake() {
   sn.dir = sn.next;
   const h = sn.snake[0];
-  const nx = (h.x + sn.dir.x + SN.cols) % SN.cols, ny = (h.y + sn.dir.y + SN.rows) % SN.rows;
+  const nx = h.x + sn.dir.x, ny = h.y + sn.dir.y;
+  if (nx < 0 || ny < 0 || nx >= SN.cols || ny >= SN.rows) { snakeDie('You hit a wall. Security was not amused.'); return; }
   for (let i = 0; i < sn.snake.length - 1; i++) {
-    if (sn.snake[i].x === nx && sn.snake[i].y === ny) { snakeFail('TANGLED IN PAPERWORK. BACK TO 0/' + CONFIG.l4.total); return; }
+    if (sn.snake[i].x === nx && sn.snake[i].y === ny) { snakeDie('You got tangled in your own paperwork.'); return; }
   }
   sn.snake.unshift({ x: nx, y: ny });
   if (nx === sn.doc.x && ny === sn.doc.y) {
@@ -1128,7 +1138,7 @@ function renderSnake() {
     d && d.timed ? 'EXPIRES IN ' + Math.ceil(d.left) + 'S' : 'NO DEADLINE', d && d.timed ? d.left / CONFIG.l4.timedSeconds : null, d && d.timed ? '#FFD27A' : '#fff');
   if (sn.flashT > 0) banner(sn.flash, 112, '#FFB4AB');
   else if (sn.doneT > 0) banner('ALL DOCUMENTS COLLECTED', 112, '#7EE2A8');
-  else if (t < 7) banner('EAT THE DOCUMENTS. SOME EXPIRE IN ' + CONFIG.l4.timedSeconds + ' SECONDS.', H - 18, '#F2B134');
+  else if (t < 7) banner('AVOID WALLS AND YOUR TAIL. RED DOCS EXPIRE IN ' + CONFIG.l4.timedSeconds + 'S.', H - 18, '#F2B134');
 }
 
 /* debug hooks, only when the address contains #debug */
