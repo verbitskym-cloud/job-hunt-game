@@ -50,6 +50,7 @@ body.touch.playing #padSwap{display:block}
 body.padleft #pad{right:auto;left:max(16px,env(safe-area-inset-left,0px))}
 body.padleft #padSwap{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #rot{position:fixed;inset:0;z-index:50;background:var(--night);color:#fff;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;font:12px/2 var(--px)}
+body.zoomed #hdr,body.zoomed #ftr{width:540px}
 #plinks{position:fixed;display:none;gap:10px;z-index:20}
 body.portrait #plinks{display:flex}
 #plinks a{flex:1;min-height:50px;display:flex;align-items:center;justify-content:center;text-align:center;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--night);font:8px/1.6 var(--px);text-decoration:none;color:var(--ink);background:#F2B134;padding:4px}
@@ -332,7 +333,8 @@ const CONFIG = {
 };
 
 /* ====================== engine ====================== */
-const W = 960, H = 460, PS = 3, PW = 30, PH = 36;
+let W = 960;
+const H = 460, PS = 3, PW = 30, PH = 36, ZOOM_W = 540;
 const PX = "'Press Start 2P', monospace";
 const UI = "Inter, system-ui, sans-serif";
 const $ = function (id) { return document.getElementById(id); };
@@ -364,19 +366,26 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 /* ---------- links ---------- */
 (function initLinks() {
   ['aThanks1', 'aThanks2', 'aThanks3', 'aThanks4'].forEach(function (id) { $(id).href = CONFIG.author.paypal; });
+  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v9'));
   $('aAuthor').href = CONFIG.author.linkedin; $('pLi').href = CONFIG.author.linkedin; $('pPp').href = CONFIG.author.paypal;
   updateShareLinks();
   ['aShare1', 'aShare2'].forEach(function (id) {
-    $(id).addEventListener('click', function () {
+    $(id).addEventListener('click', function (e) {
+      const phone = isPhone();
+      if (phone && navigator.share) { e.preventDefault(); navigator.share({ text: lastResult || 'Can you beat the AI ATS?', url: gameUrl() }).catch(function () { }); }
       try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareText()).catch(function () { }); } catch (e) { }
     });
   });
 })();
 function shareText() { return (lastResult || 'Can you beat the AI ATS?') + '\n' + gameUrl(); }
+function isPhone() {
+  const ua = navigator.userAgent || '';
+  return /iPhone|iPad|iPod|Android/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
+}
 function updateShareLinks() {
   // Opens the LinkedIn post composer with the result and the game link already in the text.
-  const phone = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
-  const href = phone ? 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(gameUrl()) : 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(shareText());
+  const phone = isPhone();
+  const href = phone ? 'https://www.linkedin.com/feed/' : 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(shareText());
   $('aShare1').href = href; $('aShare2').href = href;
 }
 
@@ -449,7 +458,7 @@ function pick(mix) {
 var decks = {};
 function deck(k) { if (!decks[k] || !decks[k].length) decks[k] = shuffle(CONFIG.items[k]); return decks[k].pop(); }
 function spawn() {
-  const tier = tierAt(t); const kind = pick(tier.mix); const x = firstSpawn ? 560 : W + 10; firstSpawn = false;
+  const tier = tierAt(t); const kind = pick(tier.mix); const x = firstSpawn ? Math.min(560, W - 20) : W + 10; firstSpawn = false;
   ctx.font = '8px ' + PX;
   if (kind === 'tile') {
     const s = rnd(36, 46);
@@ -841,7 +850,8 @@ function drawPlain() {
   ctx.strokeStyle = '#0F1826'; ctx.lineWidth = 4; ctx.strokeRect(SN.ox - 2, SN.oy - 2, fw + 4, fh + 4);
 }
 /* ---------- level 2: HR interview (catch the questions) ---------- */
-const LANES = 4, LANE_W = W / LANES, CATCH_Y = H - 96;
+const LANES = 4, CATCH_Y = H - 96;
+let LANE_W = W / LANES;
 let l2 = null;
 function startL2() {
   l2 = { lane: 1, px: LANE_W * 1.5, bubbles: [], spawned: 0, caught: 0, total: CONFIG.l2.total, spawnT: 0.6, qs: shuffle(CONFIG.l2.questions), fall: CONFIG.l2.baseFall, pops: [] };
@@ -861,8 +871,9 @@ function update2(dt) {
       let lane = rnd(0, LANES - 1), tries = 0;
       while (tries++ < 8 && l2.bubbles.some(function (b) { return b.lane === lane && b.y < 120; })) lane = rnd(0, LANES - 1);
       ctx.font = '8px ' + PX;
-      const lines = wrap(ctx, text, 178), h = lines.length * 13 + 22;
-      l2.bubbles.push({ lane: lane, y: 40 - h, h: h, w: 200, text: text, lines: lines });
+      const bw = Math.min(200, LANE_W - 10);
+      const lines = wrap(ctx, text, bw - 22), h = lines.length * 13 + 22;
+      l2.bubbles.push({ lane: lane, y: 40 - h, h: h, w: bw, text: text, lines: lines });
       l2.spawned++;
       l2.spawnT = c.intervalStart + (c.intervalEnd - c.intervalStart) * (l2.spawned / l2.total);
     }
@@ -999,8 +1010,8 @@ function buildMaze() {
 }
 function startMaze() {
   curLevel = 3;
-  const tch = document.body.classList.contains('touch');
-  MZ.cell = tch ? 46 : 52; MZ.ox = tch ? 14 : 90;
+  const tch = document.body.classList.contains('touch'), por = document.body.classList.contains('portrait');
+  MZ.cell = por ? 34 : tch ? 46 : 52; MZ.ox = por ? 15 : tch ? 14 : 90;
   mz = { r: 1, c: 1, cd: 0, g: buildMaze(), done: false, doneT: 0 };
   t = 0; lastPct = -1; state = 'maze'; show(null); setPlaying(true); setProgress(3, 0.7);
 }
@@ -1036,9 +1047,11 @@ function renderMaze() {
   ctx.fillText('OUT', MZ.ox + MZ.exitC * C + C / 2, MZ.oy + MZ.exitR * C + C / 2 + 16);
   ctx.textAlign = 'left';
   drawCV(MZ.ox + mz.c * C + (C - PW) / 2, MZ.oy + mz.r * C + (C - PH) / 2 - 4, 0, false);
+  if (W > 900) {
   drawBox(300, 14, 360, 48, false);
   ctx.fillStyle = '#1F2A3C'; ctx.textBaseline = 'top'; ctx.font = '8px ' + PX;
   wrap(ctx, CONFIG.l3.mazeText, 336).forEach(function (l, i) { ctx.fillText(l, 312, 26 + i * 13); });
+  }
   hud(['LEVEL 3: HIRING MANAGER', 'TIME ' + fmt(t), 'TASK 3 OF 3: THE MAZE'], 'FIND THE EXIT', null);
   if (mz.done) banner('EASY, RIGHT?', H - 30, '#7EE2A8');
 }
@@ -1059,8 +1072,8 @@ function spawnDoc() {
   sn.doc = { x: x, y: y, label: L.docs[sn.idx % L.docs.length], timed: L.timed.indexOf(sn.idx) >= 0, left: L.timedSeconds };
 }
 function startL4() {
-  const tch = document.body.classList.contains('touch');
-  SN.cols = tch ? 19 : 22; SN.ox = tch ? 14 : 84;
+  const tch = document.body.classList.contains('touch'), por = document.body.classList.contains('portrait');
+  SN.cols = por ? 14 : tch ? 19 : 22; SN.ox = por ? 18 : tch ? 14 : 84;
   t = 0; lastPct = -1;
   sn = { snake: [], dir: null, next: null, stepT: 0, got: 0, idx: 0, doc: null, flash: '', flashT: 0, doneT: 0 };
   resetSnake(); spawnDoc(); state = 'l4'; show(null); setPlaying(true);
@@ -1149,16 +1162,24 @@ if (/debug/.test(location.hash)) {
 /* ---------- scaling and loop ---------- */
 function resizeCanvas() {
   const k = Math.min(3, scale * (window.devicePixelRatio || 1));
+  cv.style.width = W + 'px';
   cv.width = Math.round(W * k); cv.height = Math.round(H * k);
   ctx.setTransform(k, 0, 0, k, 0, 0); ctx.imageSmoothingEnabled = false;
 }
+const ZOOM_STATES = ['play', 'crash', 'l2', 'maze', 'l4'];
+let zoomed = false;
+function wantZoom() { return window.innerHeight > window.innerWidth * 1.15 && ZOOM_STATES.indexOf(state) >= 0; }
 function fit() {
   const vw = window.innerWidth, vh = window.innerHeight;
   const portrait = vh > vw * 1.15;
+  zoomed = wantZoom();
   document.body.classList.toggle('portrait', portrait);
+  document.body.classList.toggle('zoomed', zoomed);
+  W = zoomed ? ZOOM_W : 960; LANE_W = W / LANES;
   const padEl = $('pad'), links = $('plinks');
   if (portrait) {
-    scale = vw / 960;
+    const sw = zoomed ? ZOOM_W : 960;
+    scale = vw / sw;
     const sh = 540 * scale, PADH = 150, LH = 52, G = 14;
     const top = Math.max(8, Math.round((vh - (sh + G + PADH + G + LH)) * 0.4));
     stage.style.transform = 'translate(0px,' + top + 'px) scale(' + scale + ')';
@@ -1178,6 +1199,7 @@ window.addEventListener('resize', fit);
 let last = 0;
 function loop(ts) {
   const dt = Math.min(0.05, (ts - last) / 1000 || 0); last = ts;
+  if (wantZoom() !== zoomed) fit();
   if (state === 'play') update(dt);
   else if (state === 'l2') update2(dt);
   else if (state === 'maze') updateMaze(dt);
