@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:type" content="website"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><meta property="og:url" content="https://verbitskym-cloud.github.io/job-hunt-game/"><meta property="og:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta name="description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><title>Job Hunt: The Game</title><title>Job Hunt Arcade</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Job Hunt"><meta name="theme-color" content="#172131"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta property="og:type" content="website"><meta property="og:site_name" content="Job Hunt: The Game"><meta property="og:title" content="Job Hunt: The Game"><meta property="og:description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><meta property="og:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://verbitskym-cloud.github.io/job-hunt-game/og.png"><meta name="description" content="Dodge the AI ATS, survive HR, collect the documents and get your offer. A tiny pixel arcade about job hunting."><title>Job Hunt: The Game</title><title>Job Hunt Arcade</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;600;700&display=swap">
 <style>
 /* Layout concept: a fixed 960x540 "job portal" stage scaled to the window; game field is a canvas, screens are overlays. */
@@ -50,7 +50,36 @@ body.touch.playing #padSwap{display:block}
 body.padleft #pad{right:auto;left:max(16px,env(safe-area-inset-left,0px))}
 body.padleft #padSwap{left:auto;right:max(16px,env(safe-area-inset-right,0px))}
 #rot{position:fixed;inset:0;z-index:50;background:var(--night);color:#fff;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;font:12px/2 var(--px)}
-body.zoomed #hdr,body.zoomed #ftr{width:540px}
+body.portrait #hdr,body.portrait #ftr{width:540px}
+body.portrait #field{width:540px;height:var(--fh,460px)}
+body.portrait .scr{width:540px;height:var(--fh,460px)}
+body.portrait #ftr{top:calc(52px + var(--fh,460px))}
+body.portrait #sStart .card{left:15px!important;top:8px!important;width:510px!important;padding:16px 18px 18px!important}
+body.portrait #sStart .pside{display:none!important}
+body.portrait #sSkip .card{left:15px!important;top:16px!important;width:510px!important;padding:22px 20px!important}
+body.portrait #splName{font-size:26px!important}
+body.portrait #splDesc{max-width:440px!important}
+body.portrait #sQuiz .card{left:15px!important;top:10px!important;width:510px!important;padding:16px 18px!important}
+body.portrait #quizQ{font-size:18px!important}
+body.portrait .btn.ans{font-size:14px;min-height:46px;padding:8px 12px}
+body.portrait #sTTT .card{left:15px!important;top:8px!important;width:510px!important;padding:12px 16px!important;gap:8px!important}
+body.portrait #sTTT .card svg{width:40px;height:40px}
+body.portrait #tttMsg{font-size:14px!important}
+body.portrait #tttBoard{left:160px!important;top:178px!important;width:220px!important;height:220px!important;gap:8px!important}
+body.portrait .cell{font-size:32px;border-width:3px}
+body.portrait #bTttReset{left:160px!important;top:408px!important;width:220px!important}
+body.portrait #sOver{background:linear-gradient(180deg,#34465F,#26364D)}
+body.portrait #sOver .card{left:30px!important;top:24px!important;width:480px!important;padding:22px 24px!important;gap:12px!important}
+body.portrait #ovTitle{font-size:14px!important}
+body.portrait #ovReason{font-size:15px!important}
+body.portrait #sOver .btn{font-size:10px!important}
+body.portrait #offCard{left:15px!important;top:12px!important;width:510px!important;padding:18px 22px 16px!important}
+body.portrait #offPanel{left:15px!important;top:392px!important;width:510px!important;display:grid!important;grid-template-columns:1fr 1fr;grid-auto-flow:row dense;gap:10px!important}
+body.portrait #offPanel>span{grid-column:1/-1}
+body.portrait #offPanel .px br{display:none}
+#chal{display:none;margin:0 0 12px;padding:8px 12px;background:#FFF4D6;border:3px solid var(--amber);font:600 13px/1.4 var(--ui);color:var(--ink)}
+#chal.on{display:block}
+#toast{position:fixed;left:16px;right:16px;bottom:24px;z-index:60;display:none;padding:12px 14px;background:var(--night);color:#fff;border:3px solid var(--amber);font:600 13px/1.4 var(--ui);text-align:center}
 #plinks{position:fixed;display:none;gap:10px;z-index:20}
 body.portrait #plinks{display:flex}
 #plinks a{flex:1;min-height:50px;display:flex;align-items:center;justify-content:center;text-align:center;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--night);font:8px/1.6 var(--px);text-decoration:none;color:var(--ink);background:#F2B134;padding:4px}
@@ -79,6 +108,7 @@ body.portrait #padSwap{display:none!important}
     <!-- 1 Start -->
     <section class="scr office on" id="sStart">
       <div class="card" style="left:150px;top:26px;width:660px;padding:22px 26px 24px;z-index:2">
+        <div id="chal"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <span class="px" style="font-size:14px">FILL IN CV</span>
           <span style="font-size:12px;color:var(--muted)">Name and role are optional</span>
@@ -92,7 +122,7 @@ body.portrait #padSwap{display:none!important}
               <span style="font-size:11px;color:var(--red);font-weight:600">Mobile numbers are not accepted.</span>
             </div>
           </div>
-          <div style="width:230px;flex:none;display:flex;flex-direction:column;gap:12px;justify-content:center;padding:16px;background:#fff;border:3px solid var(--ink);box-sizing:border-box">
+          <div class="pside" style="width:230px;flex:none;display:flex;flex-direction:column;gap:12px;justify-content:center;padding:16px;background:#fff;border:3px solid var(--ink);box-sizing:border-box">
             <div style="display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10l5 5 9-10" stroke="#2E9E6B" stroke-width="3.5" fill="none" shape-rendering="crispEdges"/></svg><span class="px" style="font-size:10px">Fill in CV</span></div>
             <div style="display:flex;align-items:center;gap:10px"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10l5 5 9-10" stroke="#2E9E6B" stroke-width="3.5" fill="none" shape-rendering="crispEdges"/></svg><span class="px" style="font-size:10px">Send CV</span></div>
             <div style="font-size:12px;color:var(--muted);line-height:1.4">Your CV is now flying toward the AI ATS. Good luck.</div>
@@ -178,7 +208,7 @@ body.portrait #padSwap{display:none!important}
 
     <!-- 5 Offer -->
     <section class="scr office ondark" id="sOffer">
-      <div class="card" style="left:56px;top:16px;width:568px;padding:22px 32px 20px;background:#FFFEF9">
+      <div class="card" id="offCard" style="left:56px;top:16px;width:568px;padding:22px 32px 20px;background:#FFFEF9">
         <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:3px solid var(--ink)">
           <span class="px" style="font-size:12px">OFFER OF EMPLOYMENT</span>
           <span id="offCo" style="font-size:11px;color:var(--muted);font-weight:600"></span>
@@ -193,8 +223,8 @@ body.portrait #padSwap{display:none!important}
           <div class="px" style="width:78px;height:78px;border:4px solid var(--red);box-sizing:border-box;display:flex;align-items:center;justify-content:center;transform:rotate(-12deg);font-size:9px;line-height:1.5;color:var(--red);text-align:center">COM-<br>PANY<br>CLOSED</div>
         </div>
       </div>
-      <div style="position:absolute;left:664px;top:16px;width:264px;display:flex;flex-direction:column;gap:11px;z-index:1">
-        <span class="px" style="font-size:10px;line-height:1.6;color:var(--amber)">YOU WON.<br>THE COMPANY<br>DID NOT.</span>
+      <div id="offPanel" style="position:absolute;left:664px;top:16px;width:264px;display:flex;flex-direction:column;gap:11px;z-index:1">
+        <span class="px" style="font-size:10px;line-height:1.6;color:var(--amber)">YOU WON. <br>THE COMPANY <br>DID NOT.</span>
         <button type="button" id="bDl" class="btn" style="font-size:9px">DOWNLOAD OFFER</button>
         <button type="button" id="bCopy2" class="btn" style="font-size:9px">COPY MY RESULT</button>
         <a id="aShare2" class="btn primary" style="font-size:9px" target="_blank" rel="noopener">SHARE ON LINKEDIN</a>
@@ -229,6 +259,7 @@ body.portrait #padSwap{display:none!important}
 </div>
 <button type="button" id="padSwap">Controls: swap side</button>
 <div id="plinks"><a class="li" id="pLi" target="_blank" rel="noopener">MY LINKEDIN</a><a id="pPp" target="_blank" rel="noopener">SAY THANKS (PAYPAL)</a></div>
+<div id="toast"></div>
 <div id="rot">ROTATE YOUR PHONE<br>TO LANDSCAPE<br>TO PLAY</div>
 
 <script>
@@ -349,6 +380,7 @@ let state = 'menu';        // menu | play | crash | over
 let speedMult = 1, firstSpawn = true;
 let curLevel = 1, retryFn = null;
 let t = 0, spawnTimer = 0, wallAt = -1, wallDone = false, dodged = 0, lastGap = H / 2;
+let lastMeta = {};
 let crashT = 0, crashObs = null, viaReferral = false, lastResult = null, splashTimer = null;
 let obstacles = [];
 const player = { x: 140, y: H / 2 - PH / 2 };
@@ -366,18 +398,25 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 /* ---------- links ---------- */
 (function initLinks() {
   ['aThanks1', 'aThanks2', 'aThanks3', 'aThanks4'].forEach(function (id) { $(id).href = CONFIG.author.paypal; });
-  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v9'));
+  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v10'));
   $('aAuthor').href = CONFIG.author.linkedin; $('pLi').href = CONFIG.author.linkedin; $('pPp').href = CONFIG.author.paypal;
   updateShareLinks();
   ['aShare1', 'aShare2'].forEach(function (id) {
     $(id).addEventListener('click', function (e) {
       const phone = isPhone();
-      if (phone && navigator.share) { e.preventDefault(); navigator.share({ text: lastResult || 'Can you beat the AI ATS?', url: gameUrl() }).catch(function () { }); }
+      if (phone && navigator.share) { e.preventDefault(); navigator.share({ text: lastResult || 'Can you beat the AI ATS?', url: shareUrl() }).catch(function () { }); toast('Result text copied. Paste it into your LinkedIn post.'); }
       try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareText()).catch(function () { }); } catch (e) { }
     });
   });
 })();
-function shareText() { return (lastResult || 'Can you beat the AI ATS?') + '\n' + gameUrl(); }
+function shareUrl() {
+  const base = gameUrl().split('?')[0], p = [];
+  if (lastMeta.w) p.push('w=1'); else if (lastMeta.l) { p.push('l=' + lastMeta.l); p.push('t=' + lastMeta.t); }
+  return p.length ? base + '?' + p.join('&') : base;
+}
+function shareText() { return (lastResult || 'Can you beat the AI ATS?') + '\n' + shareUrl(); }
+let toastT = 0;
+function toast(msg) { const e = $('toast'); e.textContent = msg; e.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(function () { e.style.display = 'none'; }, 4000); }
 function isPhone() {
   const ua = navigator.userAgent || '';
   return /iPhone|iPad|iPod|Android/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) || (window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
@@ -630,7 +669,7 @@ function saveBest(sec) {
 function finishOver(info) {
   state = 'over'; setPlaying(false);
   $('ovTitle').textContent = info.title; $('ovReason').textContent = info.reason; $('ovStats').textContent = info.stats;
-  lastResult = info.share; retryFn = info.retry;
+  lastResult = info.share; retryFn = info.retry; lastMeta = { l: curLevel, t: Math.floor(t) };
   setHdr('Application status: closed', 8, 'var(--red)');
   updateShareLinks();
   show('sOver');
@@ -679,7 +718,7 @@ function showOffer() {
   setRich($('offP1'), o.p1, v); setRich($('offP2'), o.p2, v); setRich($('offP3'), o.p3, v);
   $('offRef').textContent = o.ref; $('offRef').hidden = !viaReferral;
   $('offSign').textContent = o.sign; $('offSignNote').textContent = o.signNote;
-  lastResult = tpl(viaReferral ? CONFIG.share.winRef : CONFIG.share.win, { date: o.date });
+  lastResult = tpl(viaReferral ? CONFIG.share.winRef : CONFIG.share.win, { date: o.date }); lastMeta = { w: 1 };
   setHdr('Application: 100% complete', 100);
   updateShareLinks();
   show('sOffer');
@@ -687,7 +726,7 @@ function showOffer() {
 
 /* ---------- copy, download ---------- */
 function copyResult(btn) {
-  const text = (lastResult || '') + '\n' + gameUrl();
+  const text = (lastResult || '') + '\n' + shareUrl();
   const label = btn.textContent;
   const done = function (ok) { btn.textContent = ok ? 'COPIED' : 'COPY FAILED'; setTimeout(function () { btn.textContent = label; }, 1600); };
   const fallback = function () {
@@ -1156,7 +1195,7 @@ function renderSnake() {
 
 /* debug hooks, only when the address contains #debug */
 if (/debug/.test(location.hash)) {
-  window.__jh = { state: function () { return state; }, l2: function () { return l2; }, mz: function () { return mz; }, sn: function () { return sn; }, tt: function () { return tt; }, setLane: function (n) { l2.lane = n; }, setDirName: setDir, goLevel: goLevel, beginLevel: beginLevel, showQuiz: showQuiz, startMaze: startMaze };
+  window.__jh = { state: function () { return state; }, l2: function () { return l2; }, mz: function () { return mz; }, sn: function () { return sn; }, tt: function () { return tt; }, setLane: function (n) { l2.lane = n; }, setDirName: setDir, goLevel: goLevel, beginLevel: beginLevel, showQuiz: showQuiz, startMaze: startMaze, ev: function (c) { return eval(c); } };
 }
 
 /* ---------- scaling and loop ---------- */
@@ -1166,26 +1205,26 @@ function resizeCanvas() {
   cv.width = Math.round(W * k); cv.height = Math.round(H * k);
   ctx.setTransform(k, 0, 0, k, 0, 0); ctx.imageSmoothingEnabled = false;
 }
-const ZOOM_STATES = ['play', 'crash', 'l2', 'maze', 'l4'];
-let zoomed = false;
-function wantZoom() { return window.innerHeight > window.innerWidth * 1.15 && ZOOM_STATES.indexOf(state) >= 0; }
+let zoomed = false, lkey = '';
+function layoutKey() { return (window.innerHeight > window.innerWidth * 1.15 ? 'p' : 'l') + (state === 'offer' ? 'o' : 'n'); }
 function fit() {
   const vw = window.innerWidth, vh = window.innerHeight;
-  const portrait = vh > vw * 1.15;
-  zoomed = wantZoom();
+  const portrait = vh > vw * 1.15, offer = portrait && state === 'offer';
+  lkey = layoutKey(); zoomed = portrait;
+  const fh = offer ? 680 : 460;
   document.body.classList.toggle('portrait', portrait);
-  document.body.classList.toggle('zoomed', zoomed);
-  W = zoomed ? ZOOM_W : 960; LANE_W = W / LANES;
+  document.body.style.setProperty('--fh', fh + 'px');
+  W = portrait ? ZOOM_W : 960; LANE_W = W / LANES;
   const padEl = $('pad'), links = $('plinks');
   if (portrait) {
-    const sw = zoomed ? ZOOM_W : 960;
-    scale = vw / sw;
-    const sh = 540 * scale, PADH = 150, LH = 52, G = 14;
-    const top = Math.max(8, Math.round((vh - (sh + G + PADH + G + LH)) * 0.4));
+    scale = vw / ZOOM_W;
+    const sh = (52 + fh + 28) * scale, PADH = 150, LH = 52, G = 14;
+    const need = sh + G + (offer ? 0 : PADH + G) + LH;
+    const top = Math.max(8, Math.round((vh - need) * 0.4));
     stage.style.transform = 'translate(0px,' + top + 'px) scale(' + scale + ')';
     const pt = Math.round(top + sh + G);
     padEl.style.right = 'auto'; padEl.style.bottom = 'auto'; padEl.style.left = Math.round((vw - PADH) / 2) + 'px'; padEl.style.top = pt + 'px';
-    links.style.left = '12px'; links.style.right = '12px'; links.style.top = (pt + PADH + G) + 'px';
+    links.style.left = '12px'; links.style.right = '12px'; links.style.top = (offer ? pt : pt + PADH + G) + 'px';
   } else {
     scale = Math.min(vw / 960, vh / 540);
     stage.style.transform = 'translate(' + Math.round((vw - 960 * scale) / 2) + 'px,' + Math.round((vh - 540 * scale) / 2) + 'px) scale(' + scale + ')';
@@ -1199,7 +1238,7 @@ window.addEventListener('resize', fit);
 let last = 0;
 function loop(ts) {
   const dt = Math.min(0.05, (ts - last) / 1000 || 0); last = ts;
-  if (wantZoom() !== zoomed) fit();
+  if (layoutKey() !== lkey) fit();
   if (state === 'play') update(dt);
   else if (state === 'l2') update2(dt);
   else if (state === 'maze') updateMaze(dt);
@@ -1213,6 +1252,13 @@ fit();
 const fontsReady = (document.fonts && document.fonts.load)
   ? Promise.race([Promise.all([document.fonts.load("10px 'Press Start 2P'"), document.fonts.load('700 14px Inter')]), new Promise(function (r) { setTimeout(r, 1500); })])
   : Promise.resolve();
+(function () {
+  try {
+    const q = new URLSearchParams(location.search), l = parseInt(q.get('l'), 10), t = parseInt(q.get('t'), 10), el = $('chal');
+    if (q.get('w')) { el.textContent = 'CHALLENGE: a friend got the offer. The company closed anyway. Can you beat the ATS too?'; el.className = 'on'; }
+    else if (l >= 1 && l <= 4 && t >= 0 && t < 3600) { el.textContent = 'CHALLENGE: a friend was rejected at ' + fmt(t) + ' in Level ' + l + ': ' + CONFIG.levels[l].name + '. Can you do better?'; el.className = 'on'; }
+  } catch (e) { }
+})();
 const startAt = /level-(\d)/.exec(location.hash);   // add #level-2 (3, 4) to the address to jump to a level while testing
 const boot = function () { requestAnimationFrame(loop); if (startAt && CONFIG.levels[startAt[1]]) { viaReferral = false; goLevel(parseInt(startAt[1], 10)); } };
 fontsReady.then(boot, boot);
