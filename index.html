@@ -198,7 +198,7 @@ body.portrait #padSwap{display:none!important}
         <span id="ovTitle" class="px" style="font-size:12px;line-height:1.6;color:var(--red)">REJECTED</span>
         <span id="ovReason" style="font-size:13px;line-height:1.45;font-weight:600"></span>
         <span id="ovStats" style="font-size:12px;line-height:1.45;color:var(--muted)"></span>
-        <button type="button" id="bRetry" class="btn" style="font-size:9px">TRY AGAIN</button>
+        <button type="button" id="bRetry" class="btn" style="font-size:9px">SUBMIT ANOTHER CV</button>
         <button type="button" id="bCopy1" class="btn" style="font-size:9px">COPY MY RESULT</button>
         <a id="aShare1" class="btn primary" style="font-size:9px" target="_blank" rel="noopener">SHARE ON LINKEDIN</a>
         <span style="font-size:11px;line-height:1.4;color:var(--muted)">The result text is copied: paste it into the post.</span>
@@ -281,9 +281,10 @@ const CONFIG = {
   baseSpeed: 165,         // starting scroll speed, px per second
   speedStepEvery: 10,     // every N seconds the speed steps up...
   speedStepPct: 0.10,     // ...by this share (0.10 = +10%), eased in smoothly
+  wallFrom: 5, wallTo: 30,   // if the wall run is drawn (once, at the start), it appears between these seconds
   wallChance: 0.1,        // chance per run that the unavoidable wall appears at a random moment
-  wallText: 'Unfortunately, we have decided to move forward with other candidates.',
-  wallSub: 'We wish you the best in your future endeavours.',
+  wallText: 'Sorry, your CV is not in the right format.',
+  wallSub: 'We cannot tell you which format. Good luck.',
   levels: {
     1: { name: 'AI ATS', desc: 'Your CV is being scanned by a very confident algorithm. Dodge the requirements.' },
     2: { name: 'HR INTERVIEW', desc: 'HR has questions. Catch every single one. Missing even one is not an option.' },
@@ -291,6 +292,8 @@ const CONFIG = {
     4: { name: 'SECURITY CHECK', desc: 'Collect all 10 documents. Some of them expire in 10 seconds. Bureaucracy is not forgiving.' }
   },
   l2: {
+    moodChance: 0.1,            // chance that a fully passed interview still ends in a rejection
+    moodText: 'The recruiter is in a bad mood today.',
     total: 15,            // questions to catch
     baseFall: 120,        // starting fall speed, px per second
     stepEvery: 4,         // every N caught questions the fall speed steps up...
@@ -319,7 +322,9 @@ const CONFIG = {
     timed: [2, 4, 6, 8, 9],     // which documents (0 = first) expire...
     timedSeconds: 10,           // ...after this many seconds, and everything resets
     step: 0.22,                 // seconds per snake move at the start
-    speedStepEvery: 10, speedStepPct: 0.10,   // faster by 10% every 10 s
+    speedStepEvery: 10,                       // every 10 s the snake speeds up by the percentage below
+    speedPhases: [{ until: 30, pct: 0.10 }, { until: 60, pct: 0.05 }, { until: 1e9, pct: 0.025 }],
+    maxFactor: 1.6,                           // the snake never gets faster than this multiple of the start speed
     docs: ['PASSPORT', 'DIPLOMA', 'NO CRIMINAL RECORD', 'TAX NUMBER', 'REFERENCE LETTER', 'MEDICAL CERTIFICATE', '2 PHOTOS 3X4', 'EMPLOYMENT HISTORY', 'NOTARIZED TRANSLATION', 'APOSTILLE FOR THE APOSTILLE']
   },
   offer: {
@@ -337,7 +342,7 @@ const CONFIG = {
   share: {
     win: 'I got through the AI ATS, the HR interview, the hiring manager and the security check, and received an offer from a company that has since closed. Start date: {date}. Can you do better?',
     winRef: 'I skipped the ATS with a referral, survived the security check and still received an offer from a company that has since closed. Start date: {date}. Can you beat it?',
-    wall: 'I got ghosted at {time} in a job-hunting arcade game. The rarest ending, 1 in 10 candidates. Can you beat the ATS?',
+    wall: 'My CV was rejected at {time} for the wrong format. The rarest ending in a job-hunting arcade game, 1 in 10 candidates. Can you beat the ATS?',
     dead: 'My CV was rejected at {time} in Level {n}: {name}. {reason} Can you do better?'
   },
   items: {
@@ -398,14 +403,23 @@ function gameUrl() { return CONFIG.gameUrl || location.href; }
 /* ---------- links ---------- */
 (function initLinks() {
   ['aThanks1', 'aThanks2', 'aThanks3', 'aThanks4'].forEach(function (id) { $(id).href = CONFIG.author.paypal; });
-  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v10'));
+  $('aAuthor').parentNode.appendChild(document.createTextNode(' \u00b7 v11'));
   $('aAuthor').href = CONFIG.author.linkedin; $('pLi').href = CONFIG.author.linkedin; $('pPp').href = CONFIG.author.paypal;
   updateShareLinks();
   ['aShare1', 'aShare2'].forEach(function (id) {
     $(id).addEventListener('click', function (e) {
-      const phone = isPhone();
-      if (phone && navigator.share) { e.preventDefault(); navigator.share({ text: lastResult || 'Can you beat the AI ATS?', url: shareUrl() }).catch(function () { }); toast('Result text copied. Paste it into your LinkedIn post.'); }
-      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareText()).catch(function () { }); } catch (e) { }
+      const phone = isPhone(), txt = shareText();
+      let ok = false;
+      try {
+        const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length); ok = document.execCommand('copy'); document.body.removeChild(ta);
+      } catch (err) { }
+      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { }, function () { }); } catch (err) { }
+      if (phone && navigator.share) {
+        e.preventDefault();
+        navigator.share({ text: lastResult || 'Can you beat the AI ATS?', url: shareUrl() }).catch(function () { });
+        toast(ok ? 'Result text copied. Paste it into your LinkedIn post.' : 'Tap COPY MY RESULT first, then paste the text into your post.');
+      }
     });
   });
 })();
@@ -453,7 +467,7 @@ function resetRun() {
   decks = {}; t = 0; obstacles = []; dodged = 0; lastGap = H / 2; crashT = 0; crashObs = null;
   player.x = 140; player.y = H / 2 - PH / 2;
   spawnTimer = 0; wallDone = false; firstSpawn = true; speedMult = 1;
-  wallAt = Math.random() < CONFIG.wallChance ? 0.8 + Math.random() * (CONFIG.levelSeconds - 5) : -1;
+  wallAt = Math.random() < CONFIG.wallChance ? CONFIG.wallFrom + Math.random() * (CONFIG.wallTo - CONFIG.wallFrom) : -1;
   lastPct = -1; drag = null;
 }
 function beginPlay() {
@@ -690,8 +704,8 @@ function showOver() {
   const label = crashObs ? crashObs.label : 'UNKNOWN';
   const best = saveBest(Math.floor(t));
   finishOver({
-    title: (wall ? 'GHOSTED AT ' : 'REJECTED AT ') + time,
-    reason: wall ? 'Rarest ending. Only 1 in 10 candidates get it.' : 'Did not meet requirement: ' + label,
+    title: 'REJECTED AT ' + time,
+    reason: wall ? 'Wrong CV format. The rarest ending: only 1 in 10 candidates get it.' : 'Did not meet requirement: ' + label,
     stats: 'Dodged: ' + dodged + ' requirements. Best: ' + fmt(best) + '.',
     share: wall ? tpl(CONFIG.share.wall, { time: time }) : tpl(CONFIG.share.dead, { time: time, n: 1, name: CONFIG.levels[1].name, reason: 'Reason: ' + label + '.' }),
     retry: beginPlay
@@ -981,11 +995,18 @@ function showQuiz() {
   setHdr('Application: 58% complete', 58);
   show('sQuiz');
 }
+function moodFail() {
+  finishOver({
+    title: 'REJECTED', reason: CONFIG.l2.moodText, stats: 'You passed the whole interview anyway. Nothing personal.',
+    share: tpl(CONFIG.share.dead, { time: fmt(t), n: 2, name: CONFIG.levels[2].name, reason: 'I aced the interview, but the recruiter was in a bad mood.' }),
+    retry: startL2
+  });
+}
 function answerQuiz(a) {
   if (state !== 'quiz') return;
   if (a.ok) {
     state = 'quizdone'; $('quizMsg').textContent = 'HR is deeply moved. You may proceed.';
-    setTimeout(function () { if (state === 'quizdone') nextLevel(); }, 1500);
+    setTimeout(function () { if (state !== 'quizdone') return; if (Math.random() < CONFIG.l2.moodChance) moodFail(); else nextLevel(); }, 1500);
     return;
   }
   finishOver({
@@ -1149,13 +1170,23 @@ function stepSnake() {
     spawnDoc();
   } else { sn.snake.pop(); }
 }
+function snakeFactor() {
+  const L = CONFIG.l4, n = Math.floor(t / L.speedStepEvery);
+  let f = 1;
+  for (let i = 0; i < n; i++) {
+    const at = i * L.speedStepEvery; let pct = L.speedPhases[L.speedPhases.length - 1].pct;
+    for (let k = 0; k < L.speedPhases.length; k++) { if (at < L.speedPhases[k].until) { pct = L.speedPhases[k].pct; break; } }
+    f *= 1 + pct;
+  }
+  return Math.min(f, L.maxFactor);
+}
 function updateSnake(dt) {
   t += dt;
   if (sn.flashT > 0) sn.flashT -= dt;
   if (sn.doneT > 0) { sn.doneT -= dt; if (sn.doneT <= 0) nextLevel(); return; }
   if (sn.doc.timed) { sn.doc.left -= dt; if (sn.doc.left <= 0) { snakeFail('DOCUMENT EXPIRED. BACK TO 0/' + CONFIG.l4.total); return; } }
   sn.stepT -= dt;
-  while (sn.stepT <= 0) { sn.stepT += CONFIG.l4.step / Math.pow(1 + CONFIG.l4.speedStepPct, Math.floor(t / CONFIG.l4.speedStepEvery)); stepSnake(); if (state !== 'l4' || sn.doneT > 0) break; }
+  while (sn.stepT <= 0) { sn.stepT += CONFIG.l4.step / snakeFactor(); stepSnake(); if (state !== 'l4' || sn.doneT > 0) break; }
   setProgress(4, sn.got / CONFIG.l4.total);
 }
 function drawDoc(d, x, y) {
